@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Android," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+<meta name="description" content="本文基于 https://github.com/lzyzsd/JsBridge 来谈谈JsBridge的实现原理，项目代码和GitHub上源码有丢丢区别，总体上是一样的。感兴趣的童鞋可以去找源码研读一下！  一、JsBridge是什么？&amp;emsp;js和native之间通讯的桥，没有这个桥，你喊破喉咙都没用！对方就是不屌你😂">
+<meta name="keywords" content="Android">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android和js交互之“JsBridge”">
+<meta property="og:url" content="http://xiaoqqq.com/2018/02/10/Android和js交互之WebViewJavascriptBridge/index.html">
+<meta property="og:site_name" content="路在脚下">
+<meta property="og:description" content="本文基于 https://github.com/lzyzsd/JsBridge 来谈谈JsBridge的实现原理，项目代码和GitHub上源码有丢丢区别，总体上是一样的。感兴趣的童鞋可以去找源码研读一下！  一、JsBridge是什么？&amp;emsp;js和native之间通讯的桥，没有这个桥，你喊破喉咙都没用！对方就是不屌你😂">
+<meta property="og:image" content="http://t1.aixinxi.net/o_1c737silkunfogpa93ik4dbka.png-j.jpg">
+<meta property="og:image" content="http://t1.aixinxi.net/o_1c737te2dcff1k561h376v710lva.png-j.jpg">
+<meta property="og:updated_time" content="2018-02-27T09:11:15.799Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Android和js交互之“JsBridge”">
+<meta name="twitter:description" content="本文基于 https://github.com/lzyzsd/JsBridge 来谈谈JsBridge的实现原理，项目代码和GitHub上源码有丢丢区别，总体上是一样的。感兴趣的童鞋可以去找源码研读一下！  一、JsBridge是什么？&amp;emsp;js和native之间通讯的桥，没有这个桥，你喊破喉咙都没用！对方就是不屌你😂">
+<meta name="twitter:image" content="http://t1.aixinxi.net/o_1c737silkunfogpa93ik4dbka.png-j.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://xiaoqqq.com/2018/02/10/Android和js交互之WebViewJavascriptBridge/"/>
+
+
+
+
+
+  <title>Android和js交互之“JsBridge” | 路在脚下</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">路在脚下</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">一切都是为了吹牛逼</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://xiaoqqq.com/2018/02/10/Android和js交互之WebViewJavascriptBridge/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="肖某">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/uploads/me.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="路在脚下">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Android和js交互之“JsBridge”</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-02-10T13:34:18+08:00">
+                2018-02-10
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index">
+                    <span itemprop="name">Android</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计</span>
+                
+                <span title="字数统计">
+                  1,134 字
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长</span>
+                
+                <span title="阅读时长">
+                 6 分钟
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+<p>本文基于 <a href="https://github.com/lzyzsd/JsBridge" target="_blank" rel="external">https://github.com/lzyzsd/JsBridge</a> 来谈谈JsBridge的实现原理，项目代码和GitHub上源码有丢丢区别，总体上是一样的。感兴趣的童鞋可以去找源码研读一下！</p>
+</blockquote>
+<h2 id="一、JsBridge是什么？"><a href="#一、JsBridge是什么？" class="headerlink" title="一、JsBridge是什么？"></a>一、JsBridge是什么？</h2><p>&emsp;js和native之间通讯的桥，没有这个桥，你喊破喉咙都没用！对方就是不屌你😂</p>
+<a id="more"></a>
+<h2 id="二、Android如何使用JsBridge？"><a href="#二、Android如何使用JsBridge？" class="headerlink" title="二、Android如何使用JsBridge？"></a>二、Android如何使用JsBridge？</h2><p>&emsp;1、在BridgeFactory类中注册：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">static</span> String SHARE = <span class="string">"open.share"</span>;</div><div class="line"></div><div class="line"><span class="comment">/**</span></div><div class="line">* 分享组件</div><div class="line">*</div><div class="line">* <span class="doctag">@param</span> bridge</div><div class="line">* <span class="doctag">@param</span> wvjbHandler</div><div class="line">*/</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">registerOpenShare</span><span class="params">(WebViewJavascriptBridge bridge, WebViewJavascriptBridge.WVJBHandler wvjbHandler)</span> </span>&#123;</div><div class="line">	bridge.registerHandler(SHARE, wvjbHandler);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>&emsp;2、在调用的类中找到registerHandle() {} 方法，添加如下：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">BridgeFactory.registerOpenShare(bridge, <span class="keyword">new</span> WebViewJavascriptBridge.WVJBHandler() &#123;</div><div class="line">	<span class="meta">@Override</span></div><div class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">handle</span><span class="params">(String data, WebViewJavascriptBridge.WVJBResponseCallback jsCallback)</span> </span>&#123;</div><div class="line">		<span class="comment">// data是h5传给native的jsonString</span></div><div class="line">		<span class="comment">// 具体实现，通过jsCallback.callback(jsonString)回传h5;</span></div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h2 id="三、JsBridge实现原理"><a href="#三、JsBridge实现原理" class="headerlink" title="三、JsBridge实现原理"></a>三、JsBridge实现原理</h2><p>&emsp;可以看到使用过程中都用到了<label style="color:red">WebViewJavascriptBridge</label>这个类，所以可以猜想到这个类肯定是JsBridge的核心类了，透过这个类来扒一扒JsBridge的实现原理。涉及到与js通信，所以肯定会涉及到js代码，在研读源码的过程中，会穿插一些js代码辅助理解native和js是如何通信的。<br>1、<strong>js主动调用native</strong><br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">var</span> btn = <span class="built_in">document</span>.querySelector(<span class="string">'#share'</span>);</div><div class="line">    btn.addEventListener(<span class="string">'click'</span>, <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</div><div class="line">        <span class="keyword">var</span> bean = &#123;</div><div class="line">            <span class="attr">type</span>: <span class="number">1</span>,</div><div class="line">            <span class="attr">count</span>: <span class="number">1</span>,</div><div class="line">            <span class="attr">items</span>: [<span class="string">'camera'</span>, <span class="string">'album'</span>]</div><div class="line">        &#125;;</div><div class="line">        <span class="built_in">window</span>.WebViewJavascriptBridge.callHandler(<span class="string">"open.share"</span>, <span class="built_in">JSON</span>.stringify(bean), <span class="function"><span class="keyword">function</span> (<span class="params">responseData</span>) </span>&#123;</div><div class="line">            alert(responseData);</div><div class="line">        &#125;);</div><div class="line">    &#125;, <span class="literal">false</span>);</div></pre></td></tr></table></figure></p>
+<p>调用步骤如下：<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// 调用线程</span></div><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">callHandler</span>(<span class="params">handlerName, data, responseCallback</span>) </span>&#123;</div><div class="line">	<span class="built_in">console</span>.log(<span class="string">"wvjsdata:"</span>+data);</div><div class="line">	<span class="keyword">if</span>(isJsonString(data))&#123;</div><div class="line">		_doSend(&#123; <span class="attr">handlerName</span>:handlerName, <span class="attr">data</span>:data &#125;, responseCallback)</div><div class="line">	&#125;<span class="keyword">else</span>&#123;</div><div class="line">		_doSend(&#123; <span class="attr">handlerName</span>:handlerName &#125;, data)</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>👇<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// add message, 触发native处理</span></div><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">_doSend</span>(<span class="params">message, responseCallback</span>) </span>&#123;</div><div class="line">	<span class="built_in">console</span>.log(<span class="string">"responseCallback:"</span>+responseCallback);</div><div class="line">	<span class="keyword">if</span> (responseCallback) &#123;</div><div class="line">		<span class="keyword">var</span> callbackId = <span class="string">'cb_'</span>+(uniqueId++)+<span class="string">'_'</span>+<span class="keyword">new</span> <span class="built_in">Date</span>().getTime()</div><div class="line">		responseCallbacks[callbackId] = responseCallback</div><div class="line">		message[<span class="string">'callbackId'</span>] = callbackId</div><div class="line">	&#125;</div><div class="line">	<span class="built_in">console</span>.log(<span class="string">"sending:"</span>+<span class="built_in">JSON</span>.stringify(message));</div><div class="line">	_WebViewJavascriptBridge._handleMessageFromJs(message.data||<span class="literal">null</span>,message.responseId||<span class="literal">null</span>,</div><div class="line">		message.responseData||<span class="literal">null</span>,message.callbackId||<span class="literal">null</span>,message.handlerName||<span class="literal">null</span>);</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>👇<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@JavascriptInterface</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">_handleMessageFromJs</span><span class="params">(<span class="keyword">final</span> String data, String responseId,</span></span></div><div class="line">                                 String responseData, String callbackId, String handlerName) &#123;</div><div class="line">    <span class="keyword">if</span> (<span class="keyword">null</span> != responseId) &#123;</div><div class="line">        WVJBResponseCallback responseCallback = _responseCallbacks.get(responseId);</div><div class="line">        responseCallback.callback(responseData);</div><div class="line">        _responseCallbacks.remove(responseId);</div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">        WVJBResponseCallback responseCallback = <span class="keyword">null</span>;</div><div class="line">        <span class="keyword">if</span> (<span class="keyword">null</span> != callbackId) &#123;</div><div class="line">            responseCallback = <span class="keyword">new</span> CallbackJs(callbackId);</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">final</span> WVJBHandler handler;</div><div class="line">        <span class="keyword">if</span> (<span class="keyword">null</span> != handlerName) &#123;</div><div class="line">            handler = _messageHandlers.get(handlerName);</div><div class="line">            <span class="keyword">if</span> (<span class="keyword">null</span> == handler) &#123;</div><div class="line">                Log.e(<span class="string">"test"</span>, <span class="string">"WVJB Warning: No handler for "</span> + handlerName);</div><div class="line">                <span class="keyword">return</span>;</div><div class="line">            &#125;</div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">            handler = _messageHandler;</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            <span class="keyword">final</span> WVJBResponseCallback finalResponseCallback = responseCallback;</div><div class="line">            mContext.runOnUiThread(<span class="keyword">new</span> Runnable() &#123;</div><div class="line">                <span class="meta">@Override</span></div><div class="line">                <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</div><div class="line">                    handler.handle(data, finalResponseCallback);</div><div class="line">                &#125;</div><div class="line">            &#125;);</div><div class="line">        &#125; <span class="keyword">catch</span> (Exception exception) &#123;</div><div class="line">            Log.e(<span class="string">"test"</span>, <span class="string">"webviewjavascriptbridge: WARNING: java handler threw. "</span> + exception.getMessage());</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>👇<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">private</span> <span class="class"><span class="keyword">class</span> <span class="title">CallbackJs</span> <span class="keyword">implements</span> <span class="title">WVJBResponseCallback</span> </span>&#123;</div><div class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String callbackIdJs;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">CallbackJs</span><span class="params">(String callbackIdJs)</span> </span>&#123;</div><div class="line">        <span class="keyword">this</span>.callbackIdJs = callbackIdJs;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">callback</span><span class="params">(String data)</span> </span>&#123;</div><div class="line">        _callbackJs(callbackIdJs, data);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>👇<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">_callbackJs</span><span class="params">(String callbackIdJs, String data)</span> </span>&#123;</div><div class="line">    <span class="comment">//<span class="doctag">TODO:</span> CALL js to call back;</span></div><div class="line">    Map&lt;String, String&gt; message = <span class="keyword">new</span> HashMap&lt;String, String&gt;();</div><div class="line">    message.put(<span class="string">"responseId"</span>, callbackIdJs);</div><div class="line">    message.put(<span class="string">"responseData"</span>, data);</div><div class="line">    _dispatchMessage(message);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>👇<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">_dispatchMessage</span><span class="params">(Map&lt;String, String&gt; message)</span> </span>&#123;</div><div class="line">    String messageJSON = <span class="keyword">new</span> JSONObject(message).toString();</div><div class="line">    LogUtil.d(<span class="string">"test"</span>, <span class="string">"sending:"</span> + messageJSON);</div><div class="line">    <span class="keyword">final</span> String javascriptCommand =</div><div class="line">            String.format(<span class="string">"javascript:WebViewJavascriptBridge._handleMessageFromJava('%s');"</span>, doubleEscapeString(messageJSON));</div><div class="line">    LogUtil.d(<span class="string">"test javascriptcommand"</span>, javascriptCommand);</div><div class="line">    mContext.runOnUiThread(<span class="keyword">new</span> Runnable() &#123;</div><div class="line">        <span class="meta">@Override</span></div><div class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</div><div class="line">            mWebView.loadUrl(javascriptCommand);</div><div class="line">        &#125;</div><div class="line">    &#125;);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>👇<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">_handleMessageFromJava</span>(<span class="params">messageJSON</span>) </span>&#123;</div><div class="line">	_dispatchMessageFromJava(messageJSON)</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>👇<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// 提供给native使用</span></div><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">_dispatchMessageFromJava</span>(<span class="params">messageJSON</span>) </span>&#123;</div><div class="line">	<span class="keyword">var</span> message = <span class="built_in">JSON</span>.parse(messageJSON)</div><div class="line">	<span class="keyword">var</span> messageHandler</div><div class="line"></div><div class="line">	<span class="keyword">if</span> (message.responseId) &#123;</div><div class="line">		<span class="keyword">var</span> responseCallback = responseCallbacks[message.responseId]</div><div class="line">		<span class="keyword">if</span> (!responseCallback) &#123; <span class="keyword">return</span>; &#125;</div><div class="line">		responseCallback(message.responseData)</div><div class="line">		<span class="keyword">delete</span> responseCallbacks[message.responseId]</div><div class="line">	&#125; <span class="keyword">else</span> &#123;</div><div class="line">		<span class="keyword">var</span> responseCallback</div><div class="line">		<span class="keyword">if</span> (message.callbackId) &#123;</div><div class="line">			<span class="keyword">var</span> callbackResponseId = message.callbackId</div><div class="line">			responseCallback = <span class="function"><span class="keyword">function</span>(<span class="params">responseData</span>) </span>&#123;</div><div class="line">				_doSend(&#123; <span class="attr">responseId</span>:callbackResponseId, <span class="attr">responseData</span>:responseData &#125;)</div><div class="line">			&#125;</div><div class="line">		&#125;</div><div class="line"></div><div class="line">		<span class="keyword">var</span> handler = WebViewJavascriptBridge._messageHandler</div><div class="line">		<span class="keyword">if</span> (message.handlerName) &#123;</div><div class="line">			handler = messageHandlers[message.handlerName]</div><div class="line">		&#125;</div><div class="line">		<span class="keyword">try</span> &#123;</div><div class="line">			handler(message.data, responseCallback)</div><div class="line">		&#125; <span class="keyword">catch</span>(exception) &#123;</div><div class="line">			<span class="keyword">if</span> (<span class="keyword">typeof</span> <span class="built_in">console</span> != <span class="string">'undefined'</span>) &#123;</div><div class="line">				<span class="built_in">console</span>.log(<span class="string">"WebViewJavascriptBridge: WARNING: javascript handler threw."</span>, message, exception)</div><div class="line">			&#125;</div><div class="line">		&#125;</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>2、<strong>native主动调用js</strong><br>&emsp;js注册<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">bridge.registerHandler(handlerName, <span class="function"><span class="keyword">function</span>(<span class="params">data, responseCallback</span>) </span>&#123;</div><div class="line">    <span class="keyword">if</span> (responseCallback) &#123;</div><div class="line">        <span class="keyword">var</span> responseData = <span class="string">"Javascript Says Right back aka!"</span>;</div><div class="line">        responseCallback(responseData);</div><div class="line">    &#125;</div><div class="line">&#125;);</div></pre></td></tr></table></figure></p>
+<p>&emsp;native调用<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">bridge.callHandler(handlerName, string, <span class="keyword">new</span> WebViewJavascriptBridge.WVJBResponseCallback() &#123;</div><div class="line">    <span class="meta">@Override</span></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">callback</span><span class="params">(String data)</span> </span>&#123;</div><div class="line">        <span class="comment">// h5回传native</span></div><div class="line">    &#125;</div><div class="line">&#125;);</div></pre></td></tr></table></figure></p>
+<p>调用步骤如下：<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">registerHandler</span>(<span class="params">handlerName, handler</span>) </span>&#123;</div><div class="line">	messageHandlers[handlerName] = handler</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>👇<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">callHandler</span><span class="params">(String handlerName, String data, WVJBResponseCallback responseCallback)</span> </span>&#123;</div><div class="line">    _sendData(data, responseCallback, handlerName);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>👇<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">_sendData</span><span class="params">(String data, WVJBResponseCallback responseCallback, String handlerName)</span> </span>&#123;</div><div class="line">    Map&lt;String, String&gt; message = <span class="keyword">new</span> HashMap&lt;String, String&gt;();</div><div class="line">    message.put(<span class="string">"data"</span>, data);</div><div class="line">    <span class="keyword">if</span> (<span class="keyword">null</span> != responseCallback) &#123;</div><div class="line">        String callbackId = <span class="string">"java_cb_"</span> + (++_uniqueId);</div><div class="line">        _responseCallbacks.put(callbackId, responseCallback);</div><div class="line">        message.put(<span class="string">"callbackId"</span>, callbackId);</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">if</span> (<span class="keyword">null</span> != handlerName) &#123;</div><div class="line">        message.put(<span class="string">"handlerName"</span>, handlerName);</div><div class="line">    &#125;</div><div class="line">    _dispatchMessage(message);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>👇<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">_dispatchMessage</span><span class="params">(Map&lt;String, String&gt; message)</span> </span>&#123;</div><div class="line">    String messageJSON = <span class="keyword">new</span> JSONObject(message).toString();</div><div class="line">    LogUtil.d(<span class="string">"test"</span>, <span class="string">"sending:"</span> + messageJSON);</div><div class="line">    <span class="keyword">final</span> String javascriptCommand =</div><div class="line">            String.format(<span class="string">"javascript:WebViewJavascriptBridge._handleMessageFromJava('%s');"</span>, doubleEscapeString(messageJSON));</div><div class="line">    LogUtil.d(<span class="string">"test javascriptcommand"</span>, javascriptCommand);</div><div class="line">    mContext.runOnUiThread(<span class="keyword">new</span> Runnable() &#123;</div><div class="line">        <span class="meta">@Override</span></div><div class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</div><div class="line">            mWebView.loadUrl(javascriptCommand);</div><div class="line">        &#125;</div><div class="line">    &#125;);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>👇<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">_handleMessageFromJava</span>(<span class="params">messageJSON</span>) </span>&#123;</div><div class="line">	_dispatchMessageFromJava(messageJSON)</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>👇<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">_dispatchMessageFromJava</span>(<span class="params">messageJSON</span>) </span>&#123;</div><div class="line">	<span class="keyword">var</span> message = <span class="built_in">JSON</span>.parse(messageJSON)</div><div class="line">	<span class="keyword">var</span> messageHandler</div><div class="line"></div><div class="line">	<span class="keyword">if</span> (message.responseId) &#123;</div><div class="line">		<span class="keyword">var</span> responseCallback = responseCallbacks[message.responseId]</div><div class="line">		<span class="keyword">if</span> (!responseCallback) &#123; <span class="keyword">return</span>; &#125;</div><div class="line">		responseCallback(message.responseData)</div><div class="line">		<span class="keyword">delete</span> responseCallbacks[message.responseId]</div><div class="line">	&#125; <span class="keyword">else</span> &#123;</div><div class="line">		<span class="keyword">var</span> responseCallback</div><div class="line">		<span class="keyword">if</span> (message.callbackId) &#123;</div><div class="line">			<span class="keyword">var</span> callbackResponseId = message.callbackId</div><div class="line">			responseCallback = <span class="function"><span class="keyword">function</span>(<span class="params">responseData</span>) </span>&#123;</div><div class="line">				_doSend(&#123; <span class="attr">responseId</span>:callbackResponseId, <span class="attr">responseData</span>:responseData &#125;)</div><div class="line">			&#125;</div><div class="line">		&#125;</div><div class="line">		<span class="comment">//查找指定handler</span></div><div class="line">		<span class="keyword">var</span> handler = WebViewJavascriptBridge._messageHandler</div><div class="line">		<span class="keyword">if</span> (message.handlerName) &#123;</div><div class="line">			handler = messageHandlers[message.handlerName]</div><div class="line">		&#125;</div><div class="line">		<span class="keyword">try</span> &#123;</div><div class="line">			handler(message.data, responseCallback)</div><div class="line">		&#125; <span class="keyword">catch</span>(exception) &#123;</div><div class="line">			<span class="keyword">if</span> (<span class="keyword">typeof</span> <span class="built_in">console</span> != <span class="string">'undefined'</span>) &#123;</div><div class="line">				<span class="built_in">console</span>.log(<span class="string">"WebViewJavascriptBridge: WARNING: javascript handler threw."</span>, message, exception)</div><div class="line">			&#125;</div><div class="line">		&#125;</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>👇<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">_doSend</span>(<span class="params">message, responseCallback</span>) </span>&#123;</div><div class="line">	<span class="built_in">console</span>.log(<span class="string">"responseCallback:"</span>+responseCallback);</div><div class="line">	<span class="keyword">if</span> (responseCallback) &#123;</div><div class="line">		<span class="keyword">var</span> callbackId = <span class="string">'cb_'</span>+(uniqueId++)+<span class="string">'_'</span>+<span class="keyword">new</span> <span class="built_in">Date</span>().getTime()</div><div class="line">		responseCallbacks[callbackId] = responseCallback</div><div class="line">		message[<span class="string">'callbackId'</span>] = callbackId</div><div class="line">	&#125;</div><div class="line">	<span class="built_in">console</span>.log(<span class="string">"sending:"</span>+<span class="built_in">JSON</span>.stringify(message));</div><div class="line">	_WebViewJavascriptBridge._handleMessageFromJs(message.data||<span class="literal">null</span>,message.responseId||<span class="literal">null</span>,</div><div class="line">	    message.responseData||<span class="literal">null</span>,message.callbackId||<span class="literal">null</span>,message.handlerName||<span class="literal">null</span>);</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>👇<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@JavascriptInterface</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">_handleMessageFromJs</span><span class="params">(<span class="keyword">final</span> String data, String responseId,</span></span></div><div class="line">                                 String responseData, String callbackId, String handlerName) &#123;</div><div class="line">    <span class="keyword">if</span> (<span class="keyword">null</span> != responseId) &#123;</div><div class="line">        WVJBResponseCallback responseCallback = _responseCallbacks.get(responseId);</div><div class="line">        responseCallback.callback(responseData);</div><div class="line">        _responseCallbacks.remove(responseId);</div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">        WVJBResponseCallback responseCallback = <span class="keyword">null</span>;</div><div class="line">        <span class="keyword">if</span> (<span class="keyword">null</span> != callbackId) &#123;</div><div class="line">            responseCallback = <span class="keyword">new</span> CallbackJs(callbackId);</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">final</span> WVJBHandler handler;</div><div class="line">        <span class="keyword">if</span> (<span class="keyword">null</span> != handlerName) &#123;</div><div class="line">            handler = _messageHandlers.get(handlerName);</div><div class="line">            <span class="keyword">if</span> (<span class="keyword">null</span> == handler) &#123;</div><div class="line">                Log.e(<span class="string">"test"</span>, <span class="string">"WVJB Warning: No handler for "</span> + handlerName);</div><div class="line">                <span class="keyword">return</span>;</div><div class="line">            &#125;</div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">            handler = _messageHandler;</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            <span class="keyword">final</span> WVJBResponseCallback finalResponseCallback = responseCallback;</div><div class="line">            mContext.runOnUiThread(<span class="keyword">new</span> Runnable() &#123;</div><div class="line">                <span class="meta">@Override</span></div><div class="line">                <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</div><div class="line">                    handler.handle(data, finalResponseCallback);</div><div class="line">                &#125;</div><div class="line">            &#125;);</div><div class="line">        &#125; <span class="keyword">catch</span> (Exception exception) &#123;</div><div class="line">            Log.e(<span class="string">"test"</span>, <span class="string">"webviewjavascriptbridge: WARNING: java handler threw. "</span> + exception.getMessage());</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>&emsp;<label style="color:red;font-size: 24px">卧槽！！！我自己都看蒙了，还是画个图吧。。。</label></p>
+<p>&emsp;<label style="color:red;font-size: 18px">js主动调用native</label><br><img src="http://t1.aixinxi.net/o_1c737silkunfogpa93ik4dbka.png-j.jpg"></p>
+<p>&emsp;<label style="color:red;font-size: 18px">native主动调用js</label><br><img src="http://t1.aixinxi.net/o_1c737te2dcff1k561h376v710lva.png-j.jpg"></p>
+<p>&emsp;<label style="color:blue;font-size: 24px">以上就是我个人对JsBridge的理解</label></p>
+
+      
+    </div>
+
+    <div>
+          
+            
+<div class="my_post_copyright">
+  <script src="//cdn.bootcss.com/clipboard.js/1.5.10/clipboard.min.js"></script>
+
+  <!-- JS库 sweetalert 可修改路径 -->
+  <script type="text/javascript" src="http://jslibs.wuxubj.cn/sweetalert_mini/jquery-1.7.1.min.js"></script>
+  <script src="http://jslibs.wuxubj.cn/sweetalert_mini/sweetalert.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="http://jslibs.wuxubj.cn/sweetalert_mini/sweetalert.mini.css">
+  <p><span>本文标题:</span><a href="/2018/02/10/Android和js交互之WebViewJavascriptBridge/">Android和js交互之“JsBridge”</a></p>
+  <p><span>文章作者:</span><a href="/" title="访问 肖某 的个人博客">肖某</a></p>
+  <p><span>发布时间:</span>2018年02月10日 - 13:02</p>
+  <p><span>最后更新:</span>2018年02月27日 - 17:02</p>
+  
+  <p><span>欢迎转载:</span></a> 转载请保留原文链接及作者。</p>  
+</div>
+<script> 
+    var clipboard = new Clipboard('.fa-clipboard');
+    clipboard.on('success', $(function(){
+      $(".fa-clipboard").click(function(){
+        swal({   
+          title: "",   
+          text: '复制成功',   
+          html: false,
+          timer: 500,   
+          showConfirmButton: false
+        });
+      });
+    }));  
+</script>
+
+          
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        <div>
+    
+        <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束<i class="fa fa-paw"></i>感谢您的阅读-------------</div>
+    
+</div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Android/" rel="tag"><i class="fa fa-tag"></i> Android</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/01/17/微信小程序学习（二）/" rel="next" title="微信小程序学习笔记（二）">
+                <i class="fa fa-chevron-left"></i> 微信小程序学习笔记（二）
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+        <!-- JiaThis Button BEGIN -->
+<div class="jiathis_style">
+  <a class="jiathis_button_tsina"></a>
+  <a class="jiathis_button_tqq"></a>
+  <a class="jiathis_button_weixin"></a>
+  <a class="jiathis_button_cqq"></a>
+  <a class="jiathis_button_douban"></a>
+  <a class="jiathis_button_renren"></a>
+  <a class="jiathis_button_qzone"></a>
+  <a class="jiathis_button_kaixin001"></a>
+  <a class="jiathis_button_copy"></a>
+  <a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jiathis_separator jtico jtico_jiathis" target="_blank"></a>
+  <a class="jiathis_counter_style"></a>
+</div>
+<script type="text/javascript" >
+  var jiathis_config={
+    hideMore:false
+  }
+</script>
+<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js" charset="utf-8"></script>
+<!-- JiaThis Button END -->
+
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="lv-container" data-id="city" data-uid="MTAyMC8zMDEwOS82NjY0"></div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/uploads/me.jpg"
+               alt="肖某" />
+          <p class="site-author-name" itemprop="name">肖某</p>
+           
+              <p class="site-description motion-element" itemprop="description">我不生产代码,我只是代码世界里的一个搬运工</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">7</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">5</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">5</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#一、JsBridge是什么？"><span class="nav-number">1.</span> <span class="nav-text">一、JsBridge是什么？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#二、Android如何使用JsBridge？"><span class="nav-number">2.</span> <span class="nav-text">二、Android如何使用JsBridge？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#三、JsBridge实现原理"><span class="nav-number">3.</span> <span class="nav-text">三、JsBridge实现原理</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">肖某</span>
+</div>
+
+<div class="powered-by">
+<i class="fa fa-user-md"></i>
+<span id="busuanzi_container_site_uv">
+  本站总访问量<span id="busuanzi_value_site_uv"></span>次
+</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+<div class="theme-info">
+  <div class="powered-by"></div>
+  <span class="post-count">博客全站共4.5k字</span>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.1"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+    <script type="text/javascript">
+      (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+      })(document, 'script');
+    </script>
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
