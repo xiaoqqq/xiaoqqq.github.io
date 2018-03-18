@@ -276,6 +276,190 @@
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://xiaoqqq.com/2018/03/18/Android组件化开发/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="肖某">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/uploads/me.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="路在脚下">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/03/18/Android组件化开发/" itemprop="url">Android组件化开发</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-03-18T21:32:31+08:00">
+                2018-03-18
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index">
+                    <span itemprop="name">Android</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计</span>
+                
+                <span title="字数统计">
+                  1,070 字
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长</span>
+                
+                <span title="阅读时长">
+                 4 分钟
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <blockquote>
+<p>来来来，我们聊聊组件化开发</p>
+</blockquote>
+<h2 id="一、我所理解的组件化开发是什么？"><a href="#一、我所理解的组件化开发是什么？" class="headerlink" title="一、我所理解的组件化开发是什么？"></a>一、我所理解的组件化开发是什么？</h2><p>&emsp;昨天，也就是2018年3月17日星期六。在家闲来蛋疼，于是乎打开电脑开始写准需求（分享多图到微信朋友圈）。还是老规矩，先去网上看有没有造好的轮子！找到了两篇关于Android分享多图&amp;文字到微信朋友圈的文章。看过之后，开始搬砖！最后实现了Android分享多图和文字到朋友圈。But，我拿不到成功、失败、取消的回调。因为这个回调对于我来说很重要，我是做原生功能组件开发的嘛，必须要有回调，我才好回传给Js。没有这个回调，这个需求做起来就没有意义了。然后就优化代码去了，就这样一天就过去了。晚上睡觉的时候，不知道怎么滴，突然想到组件化开发这个词。心想，我们工作中一直说“组件化开发”、“原生功能组件开发”等等。但实际上并不是真正意义上的组件化开发，写的“组件”太过于耦合。并不是理想中的“组件”，单独拉出来能做项目跑。我们的代码单独拉出来，就不能用了。悲剧啊……<label style="color:red">所以，我所理解的组件化开发就是：“单独拉出来可以当项目跑，用在别的项目中能当组件使”。</label></p>
+<h2 id="二、如何开始写第一个组件？"><a href="#二、如何开始写第一个组件？" class="headerlink" title="二、如何开始写第一个组件？"></a>二、如何开始写第一个组件？</h2><p>&emsp;有了这个想法后，就一直想我要怎么才能开发出一个组件来呢？算了，不折磨自己了（毕竟词穷）。直接开始进入主题吧！</p>
+<ul>
+<li>new 一个 project，app module里写了一个button，点击button分享多图到微信朋友圈</li>
+<li>new 一个 module （取名叫xmou-core，是一个Android library），里面写分享多图到朋友圈相关的工具类</li>
+</ul>
+<p>&emsp;经过上面两步，我的第一个组件就写好了！What？你特么在逗我笑？这也能算组件咯！大爷们，请息怒！你们看，单独拉出来能当项目跑（当然咯，你肯定需要写一个sample，去compile它嘛）；再来看，我把这个xmou-core打包成jar包或者把源码拷贝给别人，别人拿到我这个组件直接就能实现分享多图&amp;文字到朋友圈了！这不就是用在别人的项目中能当组件使嘛？只是说，我这种给jar包或者给源码的方式有点low。当然，这种方式是不行的，我自己都觉得麻烦！然后接着往下面看。</p>
+<h2 id="三、写好的组件怎么给别人用？"><a href="#三、写好的组件怎么给别人用？" class="headerlink" title="三、写好的组件怎么给别人用？"></a>三、写好的组件怎么给别人用？</h2><p>&emsp;上面提到了，我自己都嫌弃这种20世纪80年代遗留下来的方式。试想下，如果别人对我的代码进行了优化，他又要给源码给我同步一下。简直不敢想，给块豆腐给我，我要撞死在豆腐上！<br>&emsp;这个时候，JCenter和GitHub救了我一命。GitHub跟我说：“你把源码放我兜里，我帮你管理”，JCenter和我说：“你把xmou-core给我，我帮你告诉别的开发者”。听完之后，感觉简直太棒了！这一套下来，只需要在build.gradle 里面 添加“compile xxxxxxx”就能使用我的组件了，然后维护GitHub上的代码，对组件进行更新维护就哦啦。当然咯，还能在简历上吹一波，写上“具备开发公共组件的能力”、“维护个人开源项目”。嗯！妙哉妙哉…<br>&emsp;至于怎么上传Android项目到JCenter，我这里就不多阐述了。<a href="http://blog.csdn.net/qq_23179075/article/details/71123452" target="_blank" rel="external">http://blog.csdn.net/qq_23179075/article/details/71123452</a><br>接轮子！！！同样，怎么上传Android项目到GitHub也不多说了，网上好多好多详细的教程。（不知道是为何，今天访问GitHub总是不行，所以我用的是国内的coding）<a href="https://coding.net/u/xmou/p/core/git?public=true" target="_blank" rel="external">https://coding.net/u/xmou/p/core/git?public=true</a>    你要不试下在你的build.gradle中添加一下：<label style="color:red">compile ‘com.xiaoqqq.xmou:xmou-core:0.0.1’</label></p>
+<h2 id="四、组件与组件之间怎么配合使用？"><a href="#四、组件与组件之间怎么配合使用？" class="headerlink" title="四、组件与组件之间怎么配合使用？"></a>四、组件与组件之间怎么配合使用？</h2><p>&emsp;关于在项目中如何同时使用多个组件呢？我也还不会，当我写出两个组件来的时候，研究一波。到时候再补上吧！ </p>
+
+          
+        
+      
+    </div>
+
+    <div>
+          
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
     <link itemprop="mainEntityOfPage" href="http://xiaoqqq.com/2018/02/10/Android和js交互之WebViewJavascriptBridge/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1556,7 +1740,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">7</span>
+                <span class="site-state-item-count">8</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -1650,7 +1834,7 @@
 
 <div class="theme-info">
   <div class="powered-by"></div>
-  <span class="post-count">博客全站共4.5k字</span>
+  <span class="post-count">博客全站共5.6k字</span>
 </div>
 
         
